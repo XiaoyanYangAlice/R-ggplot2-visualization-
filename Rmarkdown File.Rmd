@@ -1,0 +1,562 @@
+---
+title: "INST0065 Assessment 2"
+author: "do not enter your name"
+date: "21/03/2022"
+output: html_document
+
+
+
+# bibliography style; see: https://github.com/citation-style-language/styles
+
+csl: 'https://raw.githubusercontent.com/citation-style-language/styles/master/apa-6th-edition.csl'
+
+# for other examples of references
+# see https://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html
+
+references:
+- id: rebrickable2022
+  title: Lego database
+  author:
+  - literal: rebrickable.com
+  URL: 'https://rebrickable.com/downloads/'
+  type: webpage
+  issued:
+    year: 2022
+
+- id: duke-williams2022
+  title: INST0065 course notes
+  author:
+    - family: Duke-Williams
+      given: Oliver
+  URL: 'https://moodle.ucl.ac.uk/course/view.php?id=23478'
+  issued:
+    year: 2022
+
+- id: myref
+  title: Disco Divas and Heroic Knights. A critical multimodal analysis of gender roles in ‘create the world’LEGO cards
+  author: Mackenzie, Jai and Coffey-Glover, Laura and Payne, Sophie and McGlashan, Mark
+  journal: Innovations and Challenges. Women, Language and Sexism
+  publisher: Routledge London
+  URL: 'https://www.taylorfrancis.com/chapters/edit/10.4324/9780429026140-5/disco-divas-heroic-knights-jai-mackenzie-laura-coffey-glover-sophie-payne-mark-mcglashan'
+  issued:
+    year: 2020 
+    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+# INST0065 Assessment 2
+
+This is a template RMarkdown file, for use with an assessment for INST0065 Data Visualization and GIS (@duke-williams2022)
+
+Word count: 1996
+
+## 1.Data and introduction
+
+The data for this markdown file are taken from [https://rebrickable.com/downloads/](rebrickable.com) (@rebrickable2022)
+
+
+Founded in 1932 in Denmark, Lego has became one of the most popular toys today and ranked 92nd in Forbes’s 2020 Top 100 Global Brand Value List.The name ‘LEGO’ is an abbreviation of “leg godt” in Danish, meaning “play well” which is not just its name but its ideal (https://www.lego.com/en-gb/aboutus/lego-group/the-lego-group-history/). Over 90 years, LEGO has created and produced many sets in different themes and style, there are more than 18,780 LEGO sets in Brickset database (https://brickset.com/sets), the most established and accurate LEGO database on the Internet.
+
+The website Rebrickable (rebrickable.com) is a fan website that has collected thousands of custom LEGO creations along with relevant building instructions. It uses “Reuse your old LEGO bricks to find and build new creations” as its slogan and offers a daily updated catalog collecting their inventories of official Lego sets including details of sets, themes, parts, figures and colors standard as well. By combining statistics and data visualization methods with these data sets, we can better understand the development of LEGO bricks. All the data sets involved in this research are directedly drawn from Rebrickable website.
+
+## 2.Load dataset
+For uploading the dataset, this report uses the command “read_csv” built in the R package “tidyverse” to read the dataset directly through the url link, as a result, it can follow the updates in the website, while the visualization and analysis under are made based on the data of May 18th.
+```{r load-data, include=FALSE}
+# include=FALSE means that code will run, but results will not be shown
+
+# This section loads all the data; you do not need to use all tables
+
+# NB This section uses read_csv(), which is included in tidyverse 
+inventories <- read_csv("https://cdn.rebrickable.com/media/downloads/inventories.csv.gz")
+
+
+inventory_sets <- read_csv("https://cdn.rebrickable.com/media/downloads/inventory_sets.csv.gz")
+sets <- read_csv("https://cdn.rebrickable.com/media/downloads/sets.csv.gz")
+themes <- read_csv("https://cdn.rebrickable.com/media/downloads/themes.csv.gz")
+
+inventory_minifigs <- read_csv("https://cdn.rebrickable.com/media/downloads/inventory_minifigs.csv.gz")
+minifigs <- read_csv("https://cdn.rebrickable.com/media/downloads/minifigs.csv.gz")
+
+inventory_parts <- read_csv("https://cdn.rebrickable.com/media/downloads/inventory_parts.csv.gz")
+parts <- read_csv("https://cdn.rebrickable.com/media/downloads/parts.csv.gz")
+colors <- read_csv("https://cdn.rebrickable.com/media/downloads/colors.csv.gz")
+elements <- read_csv("https://cdn.rebrickable.com/media/downloads/elements.csv.gz")
+part_categories <- read_csv("https://cdn.rebrickable.com/media/downloads/part_categories.csv.gz")
+part_relationships <- read_csv("https://cdn.rebrickable.com/media/downloads/part_relationships.csv.gz")
+```
+
+```{r test-data, include=FALSE}
+# set to include=TRUE for testing, and then revert to include=FALSE
+head(inventories)
+
+head(inventory_sets)
+head(sets)
+head(themes)
+
+head(inventory_minifigs)
+head(minifigs)
+
+head(inventory_parts)
+head(parts)
+head(colors)
+head(elements)
+head(part_categories)
+head(part_relationships)
+```
+
+
+<!-- student code to follow beyond this point -->
+
+## 3.Visualization exploration
+### 3.1 Descriptive statistical analysis
+
+At the beginning, this report uses command “head()” and “length()” to see the structure and examples of data. As we can see, there are 32,799 different inventories currently, among them, 18,515 are mini-figures(small human-like toy figures), which accounts for 56.5% of the inventories. For mini-figures’ catalogue in LEGO family as dataset “minifigs” shows, there are 18,528 different mini-figures, which is a proof for the astonishing creativity and volumes of LEGO.
+```{r}
+head(inventories)
+```
+```{r}
+length(inventories$id)
+```
+```{r}
+head(inventory_minifigs)
+```
+```{r}
+head(minifigs)
+```
+
+
+```{r}
+
+length(inventory_minifigs$fig_num)
+length(minifigs$fig_num)
+```
+```{r}
+minif_ratio <-length(inventory_minifigs$inventory_id)/length(inventories$id)
+minif_ratio
+
+
+```
+Since dataset “inventory_minifigs” and “minifigs” share the same variable “fig_num”, it will be useful for later analysis to merge “minifigs” to “inventory_minifigs” by “fig_num” as a new dataframe called “in_mi_mi” which shares the same length with “inventory_minifigs”.
+
+Then, this report uses basic statistic commands “mean()”, “max()” and “min()” to summarize the characteristics of “num_parts” and “quantity”. As we can see, for number of parts, the number for all mini-figures in the inventory ranges from 0 to 43, with 4.65 as the average value. For the quantity in stock, the average number is 1.07, with the minimal being 1 and maximal being 100.
+
+```{r}
+# merge inventory_minifigs and minifigs 
+in_mi_mi<- merge(inventory_minifigs,minifigs,by.x="fig_num",by.y="fig_num")
+
+write.csv(in_mi_mi,file = "in_mi_mi_01.csv")
+head(in_mi_mi)
+
+
+```
+```{r}
+length(in_mi_mi$fig_num)
+```
+
+
+```{r}
+mean(in_mi_mi$num_parts)
+max(in_mi_mi$num_parts)
+min(in_mi_mi$num_parts)
+```
+```{r}
+mean(in_mi_mi$quantity)
+max(in_mi_mi$quantity)
+min(in_mi_mi$quantity)
+```
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+### 3.2 Visualization for the frequency of mini-figures’ parts number and quantity
+
+Firstly, this report uses the package “ggplot” to draw a scatter diagram with “inventory_id” being the x-axis and “num_parts” being the y-axis, in order to gain a general understanding about the distribution. As a result, we can see that fitted curve in blue is basically coincident with the mean benchmark in red, which suggests that there is no significant correlation between the ID of inventory and its number of parts. Then, we can observe that between 0 and 10 in y-axis, there are more points located in this area, which suggests that the generally more mini-figures has a number of parts between 0 and 10.
+
+```{r}
+s1 <- ggplot(in_mi_mi, mapping = aes(x=inventory_id, y=num_parts))+
+           geom_point(size=0.2, alpha = 0.7, colour = 4)+
+  labs(x = "inventory_id", y = "num_parts", title =
+         "Number of parts of LEGO minifig inventory in Rebrickable")+
+  geom_hline(aes(yintercept = 4.647498), colour = "red", linetype = "dashed")+
+    geom_smooth(aes(x=inventory_id, y=num_parts),method='lm')+
+  theme_light()+
+  theme(plot.title = element_text(size=13))
+s1
+```
+
+
+
+
+Based on the above general visualization, we can further explore the exact frequencies of the number of parts. This report chooses to visualize the top 10 frequencies in order to balance the readability with richness of content.
+
+As the figure above shows, there are 10,411 mini-figures that have 4 parts, 4,360 have 5 parts,and 9 out of all top 10 figures range between 0 and 10. This figure presents more accurate frequencies based on the general scattered plot above.
+
+```{r}
+in_mi_mi_np_top10<- as.data.frame(sort(table(in_mi_mi$num_parts), decreasing = T)[1:10])
+```
+
+```{r}
+names(in_mi_mi_np_top10) <- c("num_parts","Frequency")
+in_mi_mi_np_top10
+```
+
+
+
+```{r}
+ggplot(in_mi_mi_np_top10,aes(y=num_parts,x=Frequency))+
+  geom_bar(stat='identity',position = "dodge",width = 0.6,color = "steelblue", fill="steelblue")+
+     labs(x = "frequency", y = "num_parts", title =
+         "Histogram of LEGO minifig inventory number of parts for Top 10 frequencies in Rebrickable")+
+   geom_text(aes(label=Frequency), hjust=-0.2)+
+  xlim(0,12500)+
+    theme_light()+
+  theme(plot.title = element_text(size=13))
+```
+
+
+
+Then, we select top 10 quantities as shown below, 100, the highest quantity is taken by mini-figure of “Woman, Blue Torso with White Arms, White Legs”, while others are much less than this woman figures, with “Battle Droid” at the second place, “Birthday Boy” and “Skeleton” taking the third place of 10. While though they are have different inventory ID, but some of them share the same figure number, which means that they belong to the same kind. In the next section 3.3, this report will focus on the mini-figure sheet without considering the status of inventory. 
+
+```{r}
+library(dplyr)
+in_mi_mi_q_top5<- in_mi_mi %>% 
+    arrange(desc(quantity)) %>%
+    slice(1:5)
+
+```
+
+```{r}
+in_mi_mi_q_top5
+```
+
+### 3.3 Text mining focusing on mini-figures' name features
+
+LEGO’s mini-fugures are so popular with young children in the UK that they are seen as a part of a large franchise that has contributed to breaking gender gap by representing many real-world roles and characters  (@myref). By applying text mining and visualization method on the name description text of LEGO mini-figures, we can better quantify the status of gender issue currently and put forward practical suggestions.
+
+Firstly, this report uses package “wordcloud” to plot the word cloud for the “name” column in table “minifigs”, with the minimal threshold of frequency set at 150.
+
+As the figure below shows, we can observe that firstly, colors. Dark, blue, black, white, red, brown, green, gray, yellow, orange, silver .etc are common used colors in LEGO mini-figures. Secondly, body parts. Legs, torso, hair, head .etc will be the core of introduction in the name description. Thirdly, clothing and accessory. Shirt, jacket, helmet, glasses, sunglasses, suit .etc are in the common dressing style of mini-figures. Last but not least, identity. Woman and man, these two genders are shown as a relatively high frequency, similarly, occupation names that contain specific gender tendency, such as policeman can also be seen, meanwhile, pilot, driver, these identity names that do not contain gender tendency do exist as well.
+
+
+```{r}
+
+library("tm")
+```
+
+
+```{r}
+
+library("wordcloud")
+```
+
+```{r}
+wordcloud(minifigs$name,min.freq=150)
+```
+
+Therefore, in order to explore the gender tendency in LEGO mini-figures, this report uses regular expression to build gender classification functions “Woman_class” and “Man_class”.And then apply them to the table “minifigs”.
+
+```{r}
+Woman_class <- function(x){
+  case_when(
+    str_detect(x, "[Ww]oman") ~ "1",
+    str_detect(x, "[Gg]irl") ~ "1",
+    str_detect(x, "[Qq]ueen") ~ "1",
+
+    TRUE ~ x
+    )
+}
+Man_class <- function(x){
+  case_when(
+    str_detect(x, "[Mm]an") ~ "1",
+    str_detect(x, "[Bb]oy") ~ "1",
+    str_detect(x, "[Kk]ing") ~ "1",
+    TRUE ~ x
+    )
+}
+
+
+```
+
+```{r}
+s2 <- minifigs %>%
+  mutate(woman = Woman_class (name)) %>%
+  mutate(man = Man_class(name)) %>%
+  #mutate(no_gender = ifelse(gender != 1, 0)) %>%
+  mutate(woman_num= ifelse(woman != 1, 0, 1)) %>%
+  mutate(man_num = ifelse(man != 1, 0, 1)) %>%
+  summarise(woman_fig_num = sum(woman_num), man_fig_num = sum(man_num))
+
+s2
+
+ 
+```
+
+
+```{r}
+
+s2 <- t(s2)
+s2
+```
+
+```{r}
+
+data01 = data.frame(sex = c("woman_fig", "man_fig"),gender_num = s2)
+ggplot(data01,aes(x=sex,y=gender_num,fill=sex))+
+  geom_bar(stat='identity')+ 
+
+   labs(x = "Minifig's sex", y = "Frequency", title =
+         "Histogram of the sex distribution of LEGO minifig inventory in Rebrickable")+
+   geom_text(aes(label=gender_num), hjust=0)+
+
+    theme_light()+
+  theme(plot.title = element_text(size=13)) 
+  
+         
+         
+```
+
+
+
+As we can see, there are 743 mini-figures that have a clear female characteristic, while 2,534 have a clear male characteristic. There is a obvious gender imbalance problems here in LEGO mini-figures
+
+
+```{r}
+head(minifigs$name,40)
+```
+Then, this research wants to dig further more on the difference of co-occurrence words with different gender. By checking the first 40 lines of the “name” column in table “minifigs”, we can find out some clues, which is the description starts with :“Woman” and “Man” are usually focusing on stating the appearance and colors used for figures, while the lines with words “man” and “woman” in the middle place, the former part of them which end with these gender signal words, usually contains information about the identity of figures. 
+
+For woman, Line 8 “Wonder Woman” and line 23 “Warrior Woman” are descriptions about the identity of female figures rather than line 39 “Woman, Dark Bluish Gray Jacket with Magenta Scarf, White Legs, Black Hair” this kind of appearance descriptions. For man, we can also witness a similar writing style. Line 20 "Classic Spaceman” , line 32 “Batman” and line 39 “Policeman” indicate figures’ identity while line 40 “Man, Plain White Torso, Blue Legs, Light Gray Cowboy Hat” only depicts appearance.
+
+Therefore, this research uses regular expression to extract the stings end with “man” and “W/woman” and then draw word cloud pictures respectively to further analysis the co-occurrence words about identity under gender differences.
+
+```{r}
+mf_name <- minifigs$name
+```
+
+
+```{r}
+mf_name_str <-as.character(mf_name)
+```
+
+
+```{r}
+
+man_name_str <- mf_name_str[!is.na(str_extract(mf_name_str,"[^wo]man$"))] 
+```
+
+```{r}
+man_name_str
+```
+
+
+```{r}
+wordcloud(man_name_str,min.freq=1)
+```
+```{r}
+woman_name_str <- mf_name_str[!is.na(str_extract(mf_name_str,"oman$"))] 
+woman_name_str
+
+```
+```{r}
+wordcloud(woman_name_str,min.freq=1)
+
+```
+
+We can witness interesting differences between the word cloud picture of man and woman. Firstly, in word cloud of man, we can see many words of job from both ancient and contemporary world, such as swordsman, businessman, policeman, fisherman, foreman, stuntman, etc. What’s more, we can also see a lot of comic figures, such as Sandman and Hawkman.
+
+However, in the word cloud of woman, though we can also witness expressions of occupation such as woman Tennis Player, woman explorer and woman mechanic, and comic female characters like wonder Woman and Batwoman, there is a clear scarcity of variety compared to man. And we can also witness an absence of normal jobs which are taken by woman as commonly as man in real world, such as police and business worker. Since the male mini-figures can properly mimic both real and comic world, the female mini-figures should have a similar function as well, which can help young children establish a balanced , avoid the formation of gender stereotype.
+
+In conclusion, female mini-figures have a significant smaller scale and a relatively less realistic identities when compared with male mini-figures. Therefore, there is a large improvement space here for LEGO to continue forge ahead on the education of gender equity.
+
+
+
+
+
+## 4.Visualization exploration focusing on sets in the inventories
+
+### 4.1 Tracking the trend of sets number and their parts number over the history
+
+At the beginning, this report uses command “head()” and “length()” to see the structure and examples of data. As we can see, there are 19,412 different sets currently which are designed by LEGO from 1949 to present time with a huge difference on number of parts, from 0 to 11,695.
+
+
+
+```{r summarise-set-data}
+str(sets)
+head(sets,5)
+```
+
+```{r}
+length(sets$set_num)
+min(sets$year)
+max(sets$year)
+min(sets$num_parts)
+max(sets$num_parts)
+```
+```{r ggplot-year-hist1}
+# Add code
+ggplot(sets, aes(x=sets$year)) + geom_histogram(binwidth=1,fill="steelblue")+         xlim(1945,2022)+
+  
+   labs(x = "Year", y = "Number of sets launched", title =
+         "Histogram of number distribution of LEGO sets  luanched")+
+    theme_light()+
+  theme(plot.title = element_text(size=13)) 
+```
+
+
+First, the study designs a histogram showing the number of LEGO sets released each year as the timeline progressed. As the figure shows, we can observe an exponential growth over the past 73 years. In 2020, 2021 and 2022 so far, there are more than 9,00 new sets released by LEGO, which shows an strong creation vigor and brand influence.
+
+Then, this research measures the average of the number of parts, and then orders the column “num_parts” by descending.
+
+It finds out that all the Top 5 scales of sets are launched after 2015 and are largely bigger than the average of 158.
+
+
+```{r}
+round(mean(sets$num_parts,na.rm=TRUE))
+```
+```{r most-parts1}
+# Add code
+order_sets <- sets[order(-sets$num_parts),]
+order_sets[1:5,]
+str(order_sets)
+head(order_sets,5)
+```
+
+Whether this feature, the number of parts, this feature, shares a similar rising trend as the total sets number through the time? 
+
+This report counts every decade’s mean number of parts of the sets published within this decade, and then paints a histogram to present the tendency as below.
+
+
+
+
+```{r mean-parts}
+# Add code
+r1<- round(mean(subset(sets$num_parts,sets$year>1949 & sets$year<1960),na.rm=TRUE),2)
+r2<- round(mean(subset(sets$num_parts,sets$year>1959 & sets$year<1970),na.rm=TRUE),2)
+r3<- round(mean(subset(sets$num_parts,sets$year>1969 & sets$year<1980),na.rm=TRUE),2)
+r4<- round(mean(subset(sets$num_parts,sets$year>1979 & sets$year<1990),na.rm=TRUE),2)
+r5<- round(mean(subset(sets$num_parts,sets$year>1989 & sets$year<2000),na.rm=TRUE),2)
+r6<- round(mean(subset(sets$num_parts,sets$year>1999 & sets$year<2010),na.rm=TRUE),2)
+r7<- round(mean(subset(sets$num_parts,sets$year>2009 & sets$year<2020),na.rm=TRUE),2)
+
+data02 = data.frame(p = c("1950s","1960s","1970s","1980s","1990s","2000s","2010s" ), mean_parts = c(r1,r2,r3,r4,r5,r6,r7))
+```
+
+```{r}
+
+ggplot(data02,aes(x=p,y=mean_parts))+
+  geom_bar(stat='identity',fill="steelblue")+ 
+
+   labs(x = "Time period", y = "Mean part number of set", title =
+         "Histogram of mean part number distribution of LEGO set in Rebrickable")+
+    geom_text(aes(label=mean_parts), vjust=-0.2)+
+  ylim(0,200)+
+    theme_light()+
+  theme(plot.title = element_text(size=13)) 
+```
+
+
+
+This figure answers the question above, there is linear increase of average parts number through these 7 decades. 
+
+More parts, usually means an increasing complexity and larger scale. According to the analysis above, we can say that the development of numbers and scales of sets can be a proof and the epitome of LEGO brand growth.
+
+
+
+
+
+
+
+### 4.2 Exploration of Top 10 frequencies themes of sets in the inventories
+
+This study now focuses on analysis the themes of sets in the inventories. It uses “length()” to measure the table “inventory_sets”, “themes” and finds out there are 3,713 sets in Rebrickable inventories and 445 different themes. 
+
+In table “themes”, it sets up a new column called “classification” to solve the NA problem in column “parent_id” caused by the circumstance than one’s parent class is itself.
+
+Then, this report merges table “inventory_sets”, “sets” and “themes” as one table named “in_set_themes_01”. After this, it sorted out the top 10 frequencies of parent themes in the inventories and then draws the histogram as below.
+
+
+```{r}
+##rename the column "id" to "theme_id"
+names(themes)[names(themes)=="id"]<-"theme_id"
+
+length(inventory_sets$set_num)
+
+length(themes$theme_id)
+
+```
+
+
+```{r}
+head(themes,10)
+```
+```{r}
+##give themes a new column "classification" to avoid NA for parent themes
+themes$classification<-ifelse(is.na(themes$parent_id),themes$theme_id,themes$parent_id)
+head(themes,10)
+
+
+```
+
+
+```{r}
+# merge set and themes
+set_themes_01 <- merge(sets,themes,by.x="theme_id",by.y="theme_id")
+write.csv(set_themes_01,file = "set_themes_01.csv")
+length(set_themes_01$theme_id)
+```
+```{r}
+# merge inventory_sets and set_themes_01
+in_set_themes_01 <- merge(inventory_sets,set_themes_01,by.x="set_num",by.y="set_num")
+write.csv(in_set_themes_01,file = "in_set_themes_01.csv")
+length(in_set_themes_01$set_num)
+```
+
+```{r}
+Top10<- as.data.frame(sort(table(in_set_themes_01$theme_id), decreasing = T)[1:10])
+#names(sort(table(in_set_themes_01$theme_id), decreasing = T)[1:10])
+names(Top10) <- c("theme_id","Frequency")
+head(Top10,10)
+```
+
+
+```{r}
+theme_02 <- filter(themes,theme_id %in% Top10$theme_id)
+theme_02
+
+```
+
+```{r}
+theme_top <- merge(Top10, theme_02, by.x="theme_id",by.y="theme_id",)
+theme_top<- theme_top[order(theme_top$Frequency,decreasing=F),]
+theme_top
+```
+```{r}
+ggplot(theme_top,aes(x=Frequency,y=name))+
+  geom_bar(stat='identity',fill="steelblue")+
+     labs(x = "frequency", y = "theme_name", title =
+         "Top 10 parent themes of inventory in Rebrickable")+
+   geom_text(aes(label=Frequency), hjust=-0.1)+
+    theme_light()+
+  theme(plot.title = element_text(size=13))
+```
+
+
+Sets under the parent themes of “Bionicle” and “Star Wars” are now well stocked in Rebrickable. And we can also see that themes of daily life, like soccer, police, friends are quite popular as well.
+
+
+## 5.Conclusion
+
+This report analyzes the mini-figures and sets information of the inventories in Rebrickable. Firstly, it finds out that most mini-figures have 4 parts and there is a clear imbalance on the  distribution and identity variety for different genders. Then, it finds out that over the past 73 years, the sets of LEGO are rapidly growing according to both the year publication number and parts number. What’s more, for the sets in the inventories, “Bionicle” and “Star Wars” are the parent themes that occupies top 2 positions.
+
+
+
+<!-- add references here -->
+<!-- see https://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html -->
+
+# Bibliography
+
